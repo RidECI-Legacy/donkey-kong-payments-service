@@ -1,0 +1,69 @@
+name: CI & SonarQube Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - preproduction
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - preproduction
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: Setup Java JRE/JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@master
+        with:
+          cli: 'latest'
+
+      - name: Cache Clojure dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            .cpcache
+          key: ${{ runner.os }}-clojure-${{ hashFiles('**/deps.edn') }}
+          restore-keys: |
+            ${{ runner.os }}-clojure-
+
+      - name: Run Cloverage (Generates XML)
+        run: clj -M:coverage
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          RABBITMQ_URL: ${{ secrets.RABBITMQ_URL }}
+          MP_ACCESS_TOKEN: ${{ secrets.MP_ACCESS_TOKEN }}
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          args: >
+            -Dsonar.projectKey=RidECI-Legacy_donkey-kong-payments-service2
+            -Dsonar.organization=rideci-legacy-1
+            -Dsonar.sources=src
+            -Dsonar.tests=test
+            -Dsonar.clojure.cloverage.reportPath=target/coverage/codecov.json
+            -Dsonar.exclusions=**/infrastructure/adapters/out/postgres_repo.clj,**/infrastructure/consumers/**

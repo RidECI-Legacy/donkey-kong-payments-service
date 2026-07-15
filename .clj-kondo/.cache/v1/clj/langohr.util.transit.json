@@ -1,0 +1,1 @@
+["^ ","~$generate-consumer-tag",["^ ","~:row",42,"~:col",1,"~:fixed-arities",["~#set",[1]],"~:name","^0","~:ns","~$langohr.util","~:top-ns","^7","~:arities",["^ ","~i1",["^ ","~:args",["~#list",["~:nilable/string"]],"~:arglist-str","[base]"]],"~:type","~:fn"],"~:filename","C:\\Users\\juanp\\.m2\\repository\\com\\novemberain\\langohr\\5.3.0\\langohr-5.3.0.jar:langohr/util.clj"]

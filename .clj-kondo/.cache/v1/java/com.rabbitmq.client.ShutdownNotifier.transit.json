@@ -1,0 +1,1 @@
+["^ ","~:members",["^ ","addShutdownListener",["~#set",[["^ ","~:flags",["^2",["~:method","~:public"]]]]],"removeShutdownListener",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"getCloseReason",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"notifyListeners",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"isOpen",["^2",[["^ ","^3",["^2",["^4","^5"]]]]]]]
