@@ -32,9 +32,13 @@
       (finally
         (.close socket)))))
 
-(defn save-idempotency! [key val ttl-seconds]
-  (send-redis-cmd (str "SETEX payments:" key " " ttl-seconds " " val)))
-
+(defn save-idempotency!
+  "Intenta guardar la llave en Redis únicamente si no existe (NX) con un TTL.
+   Devuelve true si la guardó con éxito, false si ya existía."
+  [key val ttl-seconds]
+  (let [resp (send-redis-cmd (str "SET payments:" key " " val " NX EX " ttl-seconds))] 
+    (= resp "+OK")))
 (defn delete-idempotency!
   [key]
-  (send-redis-cmd (str "DEL payments:" key)))
+  (let [resp (send-redis-cmd (str "DEL payments:" key))]
+    (and (string? resp) (str/starts-with? resp ":") (not= resp ":0"))))

@@ -40,6 +40,20 @@ The Payments module follows an uncoupled Hexagonal (Clean) Architecture, isolati
 
 ---
 
+## 🌟 Module Context
+
+The Context Diagram (C4 Level 1) defines the operational boundaries of **Payments** within the **ridECI** ecosystem. The module functions as a decentralized, mission-critical system that allows users to securely pay their fares. Its primary role is that of a transactional orchestrator that coordinates financial flows, consuming internal resources of the architecture and interacting directly with external payment entities.
+
+* **Actor Interaction:** Passengers, drivers, and companions communicate with the system to execute transactions and view their payment or income records.
+
+* **Consumption of Internal Services:** It integrates with the *Travel MicroService* to validate the physical status of the trip and with the *User MicroService* to verify identity and apply institutional fares.
+
+* **External Banking Integration:** Delegates the actual monetary processing directly to the *Mercado Pago* API through synchronous requests and asynchronous validations via Webhooks.
+
+![Context Diagram](./docs/diagrams/DiagramaContexto.png)
+
+---
+
 ## 📂 Clean - Hexagonal Structure
 ```
 :📂 donkey-kong-payments-service
