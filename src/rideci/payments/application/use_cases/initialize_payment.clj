@@ -5,7 +5,6 @@
             [rideci.payments.domain.schemas :as schemas]))
 
 (defn execute
-  "Orquesta el proceso de inicialización de pagos soportando efectivo y pasarela digital."
   [repo cache gateway notifier data]
   (let [travel (:travel data)
         user   (:user data)
@@ -13,13 +12,13 @@
         travel-id (:travel_id travel)
         idempotency-key (str "pay-" travel-id)]
 
-    (log/info "Iniciando proceso de pago. Modo:" method "para viaje:" travel-id) 
+    (log/info "Iniciando proceso de pago. Modo:" method "para viaje:" travel-id)
 
     (when-let [existing-txs ((:find-by-user-id repo) (:user_id user))]
       (when (some (fn [t] (= (or (:travel-id t) (:transactions/travel_id t)) travel-id)) existing-txs)
         (throw (ex-info "El viaje ya cuenta con un pago registrado en la base de datos"
                         {:travel-id travel-id :status 400}))))
-    
+
     (when-not ((:save-if-not-exists! cache) idempotency-key "processing" 300)
       (throw (ex-info "Transacción ya se encuentra duplicada o en proceso activo"
                       {:key idempotency-key :status 409})))
@@ -39,24 +38,23 @@
                    :user-role         (:role user)
                    :created-at        (str (java.time.Instant/now))}]
 
-      (try 
+      (try
         (when-not (m/validate schemas/Transaction tx-data)
-          (throw (ex-info "Estructura de transacción inválida contra schemas/Transaction"
+          (throw (ex-info "Estructura de transacción inválida"
                           {:errors (m/explain schemas/Transaction tx-data)})))
-        
+
         ((:save! repo) tx-data)
-        
+
         ((:notify! notifier) {:event      (if (= method "cash") "payment.cash_requested" "payment.started")
                               :travel-id  (:travel-id tx-data)
                               :trip-name  (:trip-name tx-data)
                               :user-email (:user-email tx-data)
                               :user-phone (:user-phone tx-data)
-                              :amount     (double (:amount tx-data))
+                              :amount     (double (or (:amount tx-data) 0.0))
                               :currency   (:currency tx-data)
                               :status     (:status tx-data)
                               :timestamp  (:created-at tx-data)})
 
-        ;; 6. Procesar flujo según el tipo de pago seleccionado
         (if (= method "cash")
           {:status "success"
            :transaction-id (:id tx-data)
@@ -78,8 +76,8 @@
 
         (catch Exception e
           (log/error "Fallo en flujo interno de pago:" (.getMessage e))
-          
-          ((:delete! cache) idempotency-key) 
+
+          ((:delete! cache) idempotency-key)
           (try
             ((:update-status-atomic! repo) (:id tx-data) "failed" 1)
             (catch Exception _ nil))
@@ -89,11 +87,11 @@
                                 :trip-name  (:trip_name travel)
                                 :user-email (:email user)
                                 :user-phone (:phone user)
-                                :amount     (double (:estimatedCost travel))
+                                :amount     (double (or (:estimatedCost travel) 0.0))
                                 :currency   "COP"
                                 :status     "failed"
                                 :timestamp  (str (java.time.Instant/now))})
-          
+
           (let [error-msg (.getMessage e)]
             (if (and error-msg (str/includes? error-msg "unique_travel_payment"))
               (throw (ex-info "El viaje ya cuenta con un pago registrado en la base de datos (Garantía Única de DB)"
@@ -101,7 +99,6 @@
               (throw e))))))))
 
 (defn confirm-cash-payment
-  "Invocado cuando el conductor confirma manualmente haber recibido el dinero físico."
   [repo notifier tx-id]
   (try
     (if-let [tx ((:find-by-id repo) tx-id)]
@@ -134,7 +131,6 @@
       (throw e))))
 
 (defn get-transaction-by-id
-  "Busca y retorna los detalles de una transacción específica."
   [repo tx-id]
   (try
     (if-let [tx ((:find-by-id repo) tx-id)]
@@ -145,7 +141,6 @@
       (throw e))))
 
 (defn get-payments-by-user
-  "Trae el historial completo de transacciones para un usuario específico."
   [repo user-id]
   (try
     ((:find-by-user-id repo) user-id)

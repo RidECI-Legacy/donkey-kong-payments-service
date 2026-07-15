@@ -41,7 +41,7 @@
   {:notify! (fn [event-map] (swap! (::notifications ports) conj event-map))})
 
 (deftest flujo-pago-efectivo-exitoso-test
-  (testing "Caso 1"
+  (testing "Caso 1 - Flujo de pago en efectivo exitoso"
     (let [ports    (id-ports)
           repo     (mock-repo ports)
           cache    (mock-cache ports)
@@ -56,7 +56,7 @@
       (is (= "payment.cash_requested" (:event (first @(::notifications ports))))))))
 
 (deftest flujo-pago-tarjeta-exitoso-test
-  (testing "Caso 2"
+  (testing "Caso 2 - Flujo de pago con tarjeta exitoso"
     (let [ports    (id-ports)
           repo     (mock-repo ports)
           cache    (mock-cache ports)
@@ -71,7 +71,7 @@
       (is (= "approved" (:status @(::updated-tx ports)))))))
 
 (deftest validacion-esquema-invalido-test
-  (testing "Caso 3"
+  (testing "Caso 3 - Retorno controlado de Malli ante un esquema inválido"
     (let [ports    (id-ports)
           repo     (mock-repo ports)
           cache    (mock-cache ports)
@@ -83,7 +83,7 @@
                             (sut/execute repo cache gateway notifier payload))))))
 
 (deftest control-idempotencia-duplicados-test
-  (testing "Caso 4"
+  (testing "Caso 4 - Bloqueo de peticiones duplicadas usando el caché de Redis"
     (let [ports    (id-ports)
           repo     (mock-repo ports)
           cache    (mock-cache ports)
@@ -96,7 +96,7 @@
                             (sut/execute repo cache gateway notifier payload))))))
 
 (deftest caida-del-gateway-catch-test
-  (testing "Caso 5"
+  (testing "Caso 5 - Manejo de excepciones y rollback cuando la API externa falla"
     (let [ports    (id-ports)
           repo     (mock-repo ports)
           cache    (mock-cache ports)

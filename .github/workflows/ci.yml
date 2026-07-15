@@ -31,6 +31,9 @@ jobs:
         with:
           cli: 'latest'
 
+      - name: Install rlwrap
+        run: sudo apt-get update && sudo apt-get install -y rlwrap
+
       - name: Cache Clojure dependencies
         uses: actions/cache@v4
         with:
@@ -43,7 +46,7 @@ jobs:
             ${{ runner.os }}-clojure-
 
       - name: Run Cloverage (Generates XML)
-        run: clj -M:coverage
+        run: clojure -M:coverage
         env:
           DB_URL: ${{ secrets.DB_URL }}
           DB_USER: ${{ secrets.DB_USER }}
