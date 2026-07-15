@@ -58,7 +58,7 @@ jobs:
           MP_ACCESS_TOKEN: ${{ secrets.MP_ACCESS_TOKEN }}
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v4
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
@@ -68,5 +68,6 @@ jobs:
             -Dsonar.organization=rideci-legacy-1
             -Dsonar.sources=src
             -Dsonar.tests=test
-            -Dsonar.clojure.cloverage.reportPath=target/coverage/codecov.json
             -Dsonar.exclusions=**/infrastructure/adapters/out/postgres_repo.clj,**/infrastructure/consumers/**
+            -Dsonar.clojure.cloverage.reportPath=target/coverage/clover.xml
+            -Dsonar.lang.patterns.text=**/*.clj
